@@ -26,16 +26,26 @@ let phonebook = [
   },
 ];
 
+// Fetch all persons
 app.get("/api/persons", (request, response) => {
   response.json(phonebook);
 });
 
+// Info endpoint
 app.get("/info", (request, response) => {
   response.send(
     `<p> Phonebook has info for ${
       phonebook.length
     } people </p> <p> ${new Date()} </p>`
   );
+});
+
+// Fetch user by ID
+app.get("/api/persons/:id", (request, response) => {
+  const id = Number(request.params.id);
+  const person = phonebook.find((number) => number.id === id);
+  if (person) return response.status(200).json(person);
+  return response.status(404).end();
 });
 
 const PORT = 3001;
