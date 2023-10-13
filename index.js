@@ -26,6 +26,9 @@ let phonebook = [
   },
 ];
 
+const checkIfPersonExists = (name) =>
+  phonebook.find((number) => number.name === name) ? true : false;
+
 // Fetch all persons
 app.get("/api/persons", (request, response) => {
   response.json(phonebook);
@@ -59,8 +62,25 @@ app.delete("/api/persons/:id", (request, response) => {
   return response.status(404).end();
 });
 
+// Add a new user
 app.post("/api/persons/:id", (request, response) => {
   const recievedContact = request.body;
+
+  if (!recievedContact.name)
+    return response.status(400).json({
+      error: "You need to provide a name for the person you are trying to add",
+    });
+  if (!recievedContact.number)
+    return response.status(400).json({
+      error:
+        "You need to provide a number for the person you are trying to add",
+    });
+
+  if (checkIfPersonExists(recievedContact.name))
+    return response.status(409).json({
+      error: "The person is already added!",
+    });
+
   const newContact = {
     id: Math.floor(Math.random() * 1000000) + 1,
     name: recievedContact.name,
