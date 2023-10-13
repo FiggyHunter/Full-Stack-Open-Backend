@@ -1,18 +1,27 @@
 import express from "express";
 import morgan from "morgan";
 
-const requestLogger = (request, response, next) => {
-  console.log("Method:", request.method);
-  console.log("Path:  ", request.path);
-  console.log("Body:  ", request.body);
-  console.log("---");
-  next();
-};
+// const requestLogger = (request, response, next) => {
+//   console.log("Method:", request.method);
+//   console.log("Path:  ", request.path);
+//   console.log("Body:  ", request.body);
+//   console.log("---");
+//   next();
+// };
+
+// Morgan token
+morgan.token("requestData", function (req, res) {
+  return JSON.stringify(req.body);
+});
 
 const app = express();
 app.use(express.json());
-app.use(requestLogger);
-app.use(morgan("tiny"));
+// app.use(requestLogger);
+app.use(
+  morgan(
+    ":method :url :status :res[content-length] - :response-time ms :requestData"
+  )
+);
 
 let phonebook = [
   {
