@@ -59,6 +59,17 @@ app.delete("/api/persons/:id", (request, response) => {
   return response.status(404).end();
 });
 
+app.post("/api/persons/:id", (request, response) => {
+  const recievedContact = request.body;
+  const newContact = {
+    id: Math.floor(Math.random() * 1000000) + 1,
+    name: recievedContact.name,
+    number: recievedContact.number,
+  };
+  phonebook.push(newContact);
+  return response.status(201).json(newContact);
+});
+
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
