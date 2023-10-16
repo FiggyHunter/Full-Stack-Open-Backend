@@ -1,5 +1,6 @@
 import express from "express";
 import morgan from "morgan";
+import cors from "cors";
 
 // const requestLogger = (request, response, next) => {
 //   console.log("Method:", request.method);
@@ -16,7 +17,7 @@ morgan.token("requestData", function (req, res) {
 
 const app = express();
 app.use(express.json());
-// app.use(requestLogger);
+app.use(cors());
 app.use(
   morgan(
     ":method :url :status :res[content-length] - :response-time ms :requestData"
@@ -46,11 +47,14 @@ let phonebook = [
   },
 ];
 
-const checkIfPersonExists = (name) =>
+const checkIfPersonExistsByName = (name) =>
   phonebook.find((number) => number.name === name) ? true : false;
 
+  const getPersonById = (id) =>
+  phonebook.find((number) => Number(number.id) === id);
 // Fetch all persons
 app.get("/api/persons", (request, response) => {
+  console.log(request);
   response.json(phonebook);
 });
 
@@ -83,7 +87,7 @@ app.delete("/api/persons/:id", (request, response) => {
 });
 
 // Add a new user
-app.post("/api/persons/:id", (request, response) => {
+app.post("/api/persons/", (request, response) => {
   const recievedContact = request.body;
 
   if (!recievedContact.name)
@@ -96,7 +100,7 @@ app.post("/api/persons/:id", (request, response) => {
         "You need to provide a number for the person you are trying to add",
     });
 
-  if (checkIfPersonExists(recievedContact.name))
+  if (checkIfPersonExistsByName(recievedContact.name))
     return response.status(409).json({
       error: "The person is already added!",
     });
@@ -110,13 +114,22 @@ app.post("/api/persons/:id", (request, response) => {
   return response.status(201).json(newContact);
 });
 
+app.put("/api/persons/:id", (request, response) => {
+  const {number, id} = request.body;
+  const foundObject = getPersonById(id);
+  foundObject.number = number; 
+  console.log(foundObject);
+  return response.status(201).json(foundObject);
+});
+
+
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
 
 app.use(unknownEndpoint);
 
-const PORT = 3001;
+const PORT = 3037;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
