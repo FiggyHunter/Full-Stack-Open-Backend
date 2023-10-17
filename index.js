@@ -2,6 +2,8 @@ import express from "express";
 import morgan from "morgan";
 import cors from "cors";
 import Contact from "./models/contact.js";
+import errorHandler from "./middleware/errorHandler.js";
+import Person from "./models/contact.js";
 
 // const requestLogger = (request, response, next) => {
 //   console.log("Method:", request.method);
@@ -35,7 +37,16 @@ const checkIfPersonExistsByName = async (name) =>
 // Finds, updates, and returns the person
 const updatePersonById = async (id, newNumber) => {
   await Contact.findOneAndUpdate({ _id: id }, { number: newNumber });
-  return await Contact.findOne({ _id: id });
+  return await findPersonById(_id);
+};
+
+const findPersonById = async (id) => {
+  const person = await Contact.findOne({ _id: id });
+
+  if (!person) return person;
+
+  const { _id, name, number } = person;
+  return { _id, name, number };
 };
 
 // Fetch all persons
@@ -55,24 +66,23 @@ app.get("/info", (request, response) => {
 });
 
 // Fetch user by ID
-app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  Contact.findById(request.params.id)
-    .then((note) => {
-      response.json(note);
-    })
-    .catch((e) => response.status(404).json({ error: e }));
+app.get("/api/persons/:id", async (request, response, next) => {
+  try {
+    const id = request.params.id;
+    const person = await findPersonById(id);
+    if (!person) return response.status(404).json("Could not find person!");
+    return response.json(person);
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Delete user
-app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = phonebook.find((number) => number.id === id);
-  if (person) {
-    phonebook = phonebook.filter((number) => number.id !== id);
-    return response.status(204).end();
-  }
-  return response.status(404).end();
+app.delete("/api/persons/:id", (request, response, next) => {
+  const id = request.params.id;
+  Person.findByIdAndRemove(id)
+    .then((result) => response.status(204).end())
+    .catch((error) => next(error));
 });
 
 // Add a new user
@@ -117,6 +127,7 @@ app.put("/api/persons/:id", async (request, response) => {
 });
 
 app.use(unknownEndpoint);
+app.use(errorHandler);
 
 const PORT = 3037;
 app.listen(PORT, () => {
