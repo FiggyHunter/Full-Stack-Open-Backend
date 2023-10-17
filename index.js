@@ -37,7 +37,7 @@ const checkIfPersonExistsByName = async (name) =>
 // Finds, updates, and returns the person
 const updatePersonById = async (id, newNumber) => {
   await Contact.findOneAndUpdate({ _id: id }, { number: newNumber });
-  return await findPersonById(_id);
+  return await findPersonById(id);
 };
 
 const findPersonById = async (id) => {
