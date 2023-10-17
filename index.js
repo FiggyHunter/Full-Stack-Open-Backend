@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
+import Contact from "./models/contact.js";
 
 // const requestLogger = (request, response, next) => {
 //   console.log("Method:", request.method);
@@ -15,6 +16,10 @@ morgan.token("requestData", function (req, res) {
   return JSON.stringify(req.body);
 });
 
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
+};
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -24,38 +29,20 @@ app.use(
   )
 );
 
-let phonebook = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
+const checkIfPersonExistsByName = async (name) =>
+  (await Contact.findOne({ name })) ? true : false;
 
-const checkIfPersonExistsByName = (name) =>
-  phonebook.find((number) => number.name === name) ? true : false;
+// Finds, updates, and returns the person
+const updatePersonById = async (id, newNumber) => {
+  await Contact.findOneAndUpdate({ _id: id }, { number: newNumber });
+  return await Contact.findOne({ _id: id });
+};
 
-  const getPersonById = (id) =>
-  phonebook.find((number) => Number(number.id) === id);
 // Fetch all persons
 app.get("/api/persons", (request, response) => {
-  console.log(request);
-  response.json(phonebook);
+  Contact.find({}).then((contacts) => {
+    response.json(contacts);
+  });
 });
 
 // Info endpoint
@@ -70,9 +57,11 @@ app.get("/info", (request, response) => {
 // Fetch user by ID
 app.get("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
-  const person = phonebook.find((number) => number.id === id);
-  if (person) return response.status(200).json(person);
-  return response.status(404).end();
+  Contact.findById(request.params.id)
+    .then((note) => {
+      response.json(note);
+    })
+    .catch((e) => response.status(404).json({ error: e }));
 });
 
 // Delete user
@@ -87,8 +76,8 @@ app.delete("/api/persons/:id", (request, response) => {
 });
 
 // Add a new user
-app.post("/api/persons/", (request, response) => {
-  const recievedContact = request.body;
+app.post("/api/persons/", async (request, response) => {
+  const recievedContact = await request.body;
 
   if (!recievedContact.name)
     return response.status(400).json({
@@ -100,32 +89,32 @@ app.post("/api/persons/", (request, response) => {
         "You need to provide a number for the person you are trying to add",
     });
 
-  if (checkIfPersonExistsByName(recievedContact.name))
+  if (await checkIfPersonExistsByName(recievedContact.name))
     return response.status(409).json({
       error: "The person is already added!",
     });
 
-  const newContact = {
-    id: Math.floor(Math.random() * 1000000) + 1,
+  const contact = new Contact({
     name: recievedContact.name,
     number: recievedContact.number,
-  };
-  phonebook.push(newContact);
-  return response.status(201).json(newContact);
+  });
+
+  contact
+    .save()
+    .then((savedContact) => {
+      const { name, number, _id } = savedContact;
+      return response.status(201).json({ name, number, id: _id });
+    })
+    .catch((e) => console.log(e));
 });
 
-app.put("/api/persons/:id", (request, response) => {
-  const {number, id} = request.body;
-  const foundObject = getPersonById(id);
-  foundObject.number = number; 
-  console.log(foundObject);
+app.put("/api/persons/:id", async (request, response) => {
+  const { number, id } = request.body;
+  const foundObject = await updatePersonById(id, number);
+  if (!foundObject)
+    return response.status(404).json({ error: "Contact was not found!" });
   return response.status(201).json(foundObject);
 });
-
-
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
 
 app.use(unknownEndpoint);
 
