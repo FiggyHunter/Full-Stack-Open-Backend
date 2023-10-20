@@ -3,11 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-process.argv.forEach((val, index) => {
-  if (index === 2) recievedName = val;
-  if (index === 3) recievedNumber = val;
-});
-
 const url = process.env.DB_URL;
 
 console.log(`Connecting to: ${url}`);

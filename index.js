@@ -14,7 +14,7 @@ import Person from "./models/contact.js";
 // };
 
 // Morgan token
-morgan.token("requestData", function (req, res) {
+morgan.token("requestData", function (req) {
   return JSON.stringify(req.body);
 });
 
@@ -62,11 +62,7 @@ app.get("/api/persons", (request, response) => {
 
 // Info endpoint
 app.get("/info", (request, response) => {
-  response.send(
-    `<p> Phonebook has info for ${
-      phonebook.length
-    } people </p> <p> ${new Date()} </p>`
-  );
+  response.send(` <p> ${new Date()} </p>`);
 });
 
 // Fetch user by ID
@@ -85,7 +81,7 @@ app.get("/api/persons/:id", async (request, response, next) => {
 app.delete("/api/persons/:id", (request, response, next) => {
   const id = request.params.id;
   Person.findByIdAndRemove(id)
-    .then((result) => response.status(204).end())
+    .then(() => response.status(204).end())
     .catch((error) => next(error));
 });
 
