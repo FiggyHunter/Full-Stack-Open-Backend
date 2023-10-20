@@ -19,7 +19,11 @@ mongoose
   .catch((error) => console.log("error connecting to MongoDB:", error.message));
 
 const contactSchema = new mongoose.Schema({
-  name: String,
+  name: {
+    type: String,
+    required: true, // Make 'name' field required
+    minlength: 3, // Set a minimum length of 3 characters
+  },
   number: String,
 });
 

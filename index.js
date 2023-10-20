@@ -86,7 +86,7 @@ app.delete("/api/persons/:id", (request, response, next) => {
 });
 
 // Add a new user
-app.post("/api/persons/", async (request, response) => {
+app.post("/api/persons/", async (request, response, next) => {
   const recievedContact = await request.body;
 
   if (!recievedContact.name)
@@ -115,7 +115,7 @@ app.post("/api/persons/", async (request, response) => {
       const { name, number, _id } = savedContact;
       return response.status(201).json({ name, number, id: _id });
     })
-    .catch((e) => console.log(e));
+    .catch((error) => next(error));
 });
 
 app.put("/api/persons/:id", async (request, response) => {
