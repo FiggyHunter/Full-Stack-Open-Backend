@@ -36,7 +36,11 @@ const checkIfPersonExistsByName = async (name) =>
 
 // Finds, updates, and returns the person
 const updatePersonById = async (id, newNumber) => {
-  await Contact.findOneAndUpdate({ _id: id }, { number: newNumber });
+  await Contact.findOneAndUpdate(
+    { _id: id },
+    { number: newNumber },
+    { runValidators: true }
+  );
   return await findPersonById(id);
 };
 
@@ -46,7 +50,7 @@ const findPersonById = async (id) => {
   if (!person) return person;
 
   const { _id, name, number } = person;
-  return { _id, name, number };
+  return { id: _id, name, number };
 };
 
 // Fetch all persons
@@ -118,9 +122,15 @@ app.post("/api/persons/", async (request, response, next) => {
     .catch((error) => next(error));
 });
 
-app.put("/api/persons/:id", async (request, response) => {
+app.put("/api/persons/:id", async (request, response, next) => {
   const { number, id } = request.body;
-  const foundObject = await updatePersonById(id, number);
+  let foundObject;
+  try {
+    foundObject = await updatePersonById(id, number);
+  } catch (error) {
+    next(error);
+    return;
+  }
   if (!foundObject)
     return response.status(404).json({ error: "Contact was not found!" });
   return response.status(201).json(foundObject);

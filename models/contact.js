@@ -24,7 +24,19 @@ const contactSchema = new mongoose.Schema({
     required: true, // Make 'name' field required
     minlength: 3, // Set a minimum length of 3 characters
   },
-  number: String,
+  number: {
+    type: String,
+    required: true,
+    minlength: 8,
+    validate: {
+      validator: function (value) {
+        // Use a regular expression to check the format
+        return /^\d{2,3}-\d+$/.test(value);
+      },
+      message:
+        "The number field must match the format: XX-XXXXX (where X is a digit).",
+    },
+  },
 });
 
 contactSchema.set("toJSON", {
