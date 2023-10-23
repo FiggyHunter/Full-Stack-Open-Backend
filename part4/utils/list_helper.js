@@ -39,4 +39,23 @@ const mostBlogs = (blogPosts) => {
   return maxAuthor;
 };
 
-export default { dummy, totalLikes, favoriteBlog, mostBlogs };
+const mostLikes = (blogPosts) => {
+  const likesPerAuthor = new Map();
+  let maxLikesAuthor = null;
+
+  for (let post of blogPosts) {
+    let authorName = post.author;
+    let authorData = likesPerAuthor.get(authorName) || {
+      author: authorName,
+      likes: 0,
+    };
+    authorData.likes += post.likes;
+    likesPerAuthor.set(authorName, authorData);
+
+    if (maxLikesAuthor === null || authorData.likes > maxLikesAuthor.likes)
+      maxLikesAuthor = authorData;
+  }
+  return maxLikesAuthor;
+};
+
+export default { dummy, totalLikes, favoriteBlog, mostBlogs, mostLikes };
