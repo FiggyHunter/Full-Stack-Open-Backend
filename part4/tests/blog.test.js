@@ -78,7 +78,7 @@ describe("Total likes", () => {
   });
 });
 
-describe("findObjectWithMostLikes", () => {
+describe("Finds object with most likes", () => {
   test("should return the object with the most likes", () => {
     const result = listHelper.favoriteBlog(blogs);
 
@@ -91,3 +91,16 @@ describe("findObjectWithMostLikes", () => {
     expect(result).toEqual(expectedObject);
   });
 });
+
+describe("Finds author with the most blog posts", () => {
+  test("should return the author with most blog posts out of many authors", () => {
+    const result = listHelper.mostBlogs(blogs);
+    const expectedObject = {
+      author: "Robert C. Martin",
+      posts: 3,
+    };
+    expect(result).toEqual(expectedObject);
+  });
+});
+
+listHelper.mostBlogs(blogs);
